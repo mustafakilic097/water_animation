@@ -2,7 +2,7 @@
 
 A simple Flutter package that provides a customizable water animation widget to create realistic water effects with animated waves, gradient fills, and ripple effects.
 
-![Water Animation](https://github.com/yourusername/your-repo/assets/your-image.png)
+![Water Animation](https://github.com/user-attachments/assets/af82e587-df10-4813-acd5-104b3c28a68f)
 
 ## Features
 
