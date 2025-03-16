@@ -21,7 +21,7 @@ A simple Flutter package that provides a customizable water animation widget to 
 
    ```yaml
    dependencies:
-     water_animation: ^0.0.1
+     water_animation: ^0.0.2
    ```
 
 2. **Install the Package:**  

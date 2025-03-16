@@ -1,8 +1,8 @@
 name: water_animation
 description: "Water Animation is a Flutter widget for customizable water effects with animated waves, gradient fills, and ripple effects."
-version: 0.0.1
-homepage: "https://github.com/mustafakilic097/drop_animation.git"
-repository: "https://github.com/mustafakilic097/drop_animation.git"
+version: 0.0.2
+homepage: "https://github.com/mustafakilic097/water_animation.git"
+repository: "https://github.com/mustafakilic097/water_animation.git"
 
 environment:
   sdk: ^3.7.0
