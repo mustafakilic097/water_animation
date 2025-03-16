@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:water_animation/water_animation.dart';
 
 void main() {
-  runApp(MaterialApp(home: WaterAnimationDemo()));
+  runApp(MaterialApp(home: const WaterAnimationDemo()));
 }
 
 class WaterAnimationDemo extends StatefulWidget {
+  const WaterAnimationDemo({super.key});
+
   @override
-  _WaterAnimationDemoState createState() => _WaterAnimationDemoState();
+  WaterAnimationDemoState createState() => WaterAnimationDemoState();
 }
 
-class _WaterAnimationDemoState extends State<WaterAnimationDemo> {
+class WaterAnimationDemoState extends State<WaterAnimationDemo> {
   double amplitude = 20.0;
   double frequency = 1.0;
   double speed = 3.0;
@@ -45,11 +47,11 @@ class _WaterAnimationDemoState extends State<WaterAnimationDemo> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text("Water Animation Demo")),
+      appBar: AppBar(title: const Text("Water Animation Demo")),
       body: Column(
         children: [
           Expanded(child: Center(child: waterAnim)),
-          Divider(),
+          const Divider(),
           Expanded(
             child: SingleChildScrollView(
               child: WaterAnimationControlPanel(
@@ -129,10 +131,11 @@ class WaterAnimationControlPanel extends StatefulWidget {
     double secondWaveFrequency,
     double secondWaveSpeed,
     Color secondWaveColor,
-  ) onParametersChanged;
+  )
+  onParametersChanged;
 
   const WaterAnimationControlPanel({
-    Key? key,
+    super.key,
     required this.amplitude,
     required this.frequency,
     required this.speed,
@@ -146,13 +149,15 @@ class WaterAnimationControlPanel extends StatefulWidget {
     required this.secondWaveSpeed,
     required this.secondWaveColor,
     required this.onParametersChanged,
-  }) : super(key: key);
+  });
 
   @override
-  _WaterAnimationControlPanelState createState() => _WaterAnimationControlPanelState();
+  WaterAnimationControlPanelState createState() =>
+      WaterAnimationControlPanelState();
 }
 
-class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel> {
+class WaterAnimationControlPanelState
+    extends State<WaterAnimationControlPanel> {
   late double amplitude;
   late double frequency;
   late double speed;
@@ -203,13 +208,16 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: Column(
         children: [
-          Text("Water Animation Controls", style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text(
+            "Water Animation Controls",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           Row(
             children: [
-              Text("Amplitude"),
+              const Text("Amplitude"),
               Expanded(
                 child: Slider(
                   value: amplitude,
@@ -229,7 +237,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
           ),
           Row(
             children: [
-              Text("Frequency"),
+              const Text("Frequency"),
               Expanded(
                 child: Slider(
                   value: frequency,
@@ -249,7 +257,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
           ),
           Row(
             children: [
-              Text("Speed"),
+              const Text("Speed"),
               Expanded(
                 child: Slider(
                   value: speed,
@@ -270,7 +278,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Text("Gradient"),
+              const Text("Gradient"),
               Switch(
                 value: enableGradient,
                 onChanged: (val) {
@@ -280,7 +288,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
                   });
                 },
               ),
-              Text("Ripple"),
+              const Text("Ripple"),
               Switch(
                 value: enableRipple,
                 onChanged: (val) {
@@ -290,7 +298,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
                   });
                 },
               ),
-              Text("Shader"),
+              const Text("Shader"),
               Switch(
                 value: enableShader,
                 onChanged: (val) {
@@ -304,9 +312,9 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
           ),
           Row(
             children: [
-              Text("Water Color: "),
+              const Text("Water Color: "),
               IconButton(
-                icon: Icon(Icons.circle, color: Colors.blue),
+                icon: const Icon(Icons.circle, color: Colors.blue),
                 onPressed: () {
                   setState(() {
                     waterColor = Colors.blue;
@@ -315,7 +323,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
                 },
               ),
               IconButton(
-                icon: Icon(Icons.circle, color: Colors.cyan),
+                icon: const Icon(Icons.circle, color: Colors.cyan),
                 onPressed: () {
                   setState(() {
                     waterColor = Colors.cyan;
@@ -324,7 +332,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
                 },
               ),
               IconButton(
-                icon: Icon(Icons.circle, color: Colors.indigo),
+                icon: const Icon(Icons.circle, color: Colors.indigo),
                 onPressed: () {
                   setState(() {
                     waterColor = Colors.indigo;
@@ -334,11 +342,11 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
               ),
             ],
           ),
-          Divider(),
+          const Divider(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Enable 2nd Wave"),
+              const Text("Enable 2nd Wave"),
               Switch(
                 value: enableSecondWave,
                 onChanged: (val) {
@@ -353,7 +361,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
           if (enableSecondWave) ...[
             Row(
               children: [
-                Text("2nd Amplitude"),
+                const Text("2nd Amplitude"),
                 Expanded(
                   child: Slider(
                     value: secondWaveAmplitude,
@@ -373,7 +381,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
             ),
             Row(
               children: [
-                Text("2nd Frequency"),
+                const Text("2nd Frequency"),
                 Expanded(
                   child: Slider(
                     value: secondWaveFrequency,
@@ -393,7 +401,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
             ),
             Row(
               children: [
-                Text("2nd Speed"),
+                const Text("2nd Speed"),
                 Expanded(
                   child: Slider(
                     value: secondWaveSpeed,
@@ -413,9 +421,9 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
             ),
             Row(
               children: [
-                Text("2nd Color: "),
+                const Text("2nd Color: "),
                 IconButton(
-                  icon: Icon(Icons.circle, color: Colors.blueAccent),
+                  icon: const Icon(Icons.circle, color: Colors.blueAccent),
                   onPressed: () {
                     setState(() {
                       secondWaveColor = Colors.blueAccent;
@@ -424,7 +432,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.circle, color: Colors.purple),
+                  icon: const Icon(Icons.circle, color: Colors.purple),
                   onPressed: () {
                     setState(() {
                       secondWaveColor = Colors.purple;
@@ -433,7 +441,7 @@ class _WaterAnimationControlPanelState extends State<WaterAnimationControlPanel>
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.circle, color: Colors.green),
+                  icon: const Icon(Icons.circle, color: Colors.green),
                   onPressed: () {
                     setState(() {
                       secondWaveColor = Colors.green;
