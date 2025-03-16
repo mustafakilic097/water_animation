@@ -1,5 +1,7 @@
-# Water Animation
 
+<img src="https://github.com/user-attachments/assets/29507311-77b6-4772-aa6c-dd0749638c88" alt="WATER-ANİMATİON" width="300">
+
+# Water Animation
 A simple Flutter package that provides a customizable water animation widget to create realistic water effects with animated waves, gradient fills, and ripple effects.
 
 ![Water Animation](https://github.com/user-attachments/assets/af82e587-df10-4813-acd5-104b3c28a68f)
@@ -83,7 +85,7 @@ class MyApp extends StatelessWidget {
 ## Additional Information
 
 - **Repository:**  
-  For more details, to contribute, or to file issues, please visit the [GitHub repository](https://github.com/yourusername/your-repo).
+  For more details, to contribute, or to file issues, please visit the [GitHub repository](https://github.com/mustafakilic097/water_animation).
 
 - **Contributing:**  
   Contributions are welcome! Feel free to open issues or submit pull requests with improvements.
