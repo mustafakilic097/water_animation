@@ -26,12 +26,22 @@ class WaterAnimationDemoState extends State<WaterAnimationDemo> {
   double secondWaveSpeed = 1.0;
   Color secondWaveColor = Colors.blueAccent;
   List<Color> gradientColors = [Colors.blue, Colors.lightBlueAccent];
+  double waterFillFraction = 0.5;
+  double fillTransitionDurationSeconds = 1.0;
+  Curve fillTransitionCurve = Curves.easeInOut;
+  bool realisticWave = false;
+  bool enableDecoration = false;
 
   @override
   Widget build(BuildContext context) {
     final waterAnim = WaterAnimation(
       width: MediaQuery.of(context).size.width,
       height: 200,
+      waterFillFraction: waterFillFraction,
+      fillTransitionDuration: Duration(
+        seconds: fillTransitionDurationSeconds.toInt(),
+      ),
+      fillTransitionCurve: fillTransitionCurve,
       amplitude: amplitude,
       frequency: frequency,
       speed: speed,
@@ -44,6 +54,17 @@ class WaterAnimationDemoState extends State<WaterAnimationDemo> {
       secondWaveFrequency: secondWaveFrequency,
       secondWaveSpeed: secondWaveSpeed,
       secondWaveColor: secondWaveColor,
+      realisticWave: realisticWave,
+      decoration:
+          enableDecoration
+              ? BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              )
+              : null,
+      onTap: () {
+        debugPrint("Water widget tapped!");
+      },
     );
 
     return Scaffold(
@@ -67,6 +88,11 @@ class WaterAnimationDemoState extends State<WaterAnimationDemo> {
                 secondWaveFrequency: secondWaveFrequency,
                 secondWaveSpeed: secondWaveSpeed,
                 secondWaveColor: secondWaveColor,
+                waterFillFraction: waterFillFraction,
+                fillTransitionDurationSeconds: fillTransitionDurationSeconds,
+                fillTransitionCurve: fillTransitionCurve,
+                realisticWave: realisticWave,
+                enableDecoration: enableDecoration,
                 onParametersChanged: (
                   newAmplitude,
                   newFrequency,
@@ -80,6 +106,11 @@ class WaterAnimationDemoState extends State<WaterAnimationDemo> {
                   newSecondWaveFrequency,
                   newSecondWaveSpeed,
                   newSecondWaveColor,
+                  newWaterFillFraction,
+                  newFillTransitionDurationSeconds,
+                  newFillTransitionCurve,
+                  newRealisticWave,
+                  newEnableDecoration,
                 ) {
                   setState(() {
                     amplitude = newAmplitude;
@@ -94,6 +125,12 @@ class WaterAnimationDemoState extends State<WaterAnimationDemo> {
                     secondWaveFrequency = newSecondWaveFrequency;
                     secondWaveSpeed = newSecondWaveSpeed;
                     secondWaveColor = newSecondWaveColor;
+                    waterFillFraction = newWaterFillFraction;
+                    fillTransitionDurationSeconds =
+                        newFillTransitionDurationSeconds;
+                    fillTransitionCurve = newFillTransitionCurve;
+                    realisticWave = newRealisticWave;
+                    enableDecoration = newEnableDecoration;
                   });
                 },
               ),
@@ -118,6 +155,14 @@ class WaterAnimationControlPanel extends StatefulWidget {
   final double secondWaveFrequency;
   final double secondWaveSpeed;
   final Color secondWaveColor;
+
+  // Yeni parametreler:
+  final double waterFillFraction;
+  final double fillTransitionDurationSeconds;
+  final Curve fillTransitionCurve;
+  final bool realisticWave;
+  final bool enableDecoration;
+
   final Function(
     double amplitude,
     double frequency,
@@ -131,6 +176,11 @@ class WaterAnimationControlPanel extends StatefulWidget {
     double secondWaveFrequency,
     double secondWaveSpeed,
     Color secondWaveColor,
+    double waterFillFraction,
+    double fillTransitionDurationSeconds,
+    Curve fillTransitionCurve,
+    bool realisticWave,
+    bool enableDecoration,
   )
   onParametersChanged;
 
@@ -148,6 +198,11 @@ class WaterAnimationControlPanel extends StatefulWidget {
     required this.secondWaveFrequency,
     required this.secondWaveSpeed,
     required this.secondWaveColor,
+    required this.waterFillFraction,
+    required this.fillTransitionDurationSeconds,
+    required this.fillTransitionCurve,
+    required this.realisticWave,
+    required this.enableDecoration,
     required this.onParametersChanged,
   });
 
@@ -171,6 +226,16 @@ class WaterAnimationControlPanelState
   late double secondWaveSpeed;
   late Color secondWaveColor;
 
+  // Yeni parametreler:
+  late double waterFillFraction;
+  late double fillTransitionDurationSeconds;
+  late Curve fillTransitionCurve;
+  late bool realisticWave;
+  late bool enableDecoration;
+
+  // Fill curve dropdown için:
+  late String selectedCurve;
+
   @override
   void initState() {
     super.initState();
@@ -186,6 +251,15 @@ class WaterAnimationControlPanelState
     secondWaveFrequency = widget.secondWaveFrequency;
     secondWaveSpeed = widget.secondWaveSpeed;
     secondWaveColor = widget.secondWaveColor;
+
+    waterFillFraction = widget.waterFillFraction;
+    fillTransitionDurationSeconds = widget.fillTransitionDurationSeconds;
+    fillTransitionCurve = widget.fillTransitionCurve;
+    realisticWave = widget.realisticWave;
+    enableDecoration = widget.enableDecoration;
+
+    selectedCurve =
+        (fillTransitionCurve == Curves.linear) ? "Linear" : "EaseInOut";
   }
 
   void _notify() {
@@ -202,6 +276,11 @@ class WaterAnimationControlPanelState
       secondWaveFrequency,
       secondWaveSpeed,
       secondWaveColor,
+      waterFillFraction,
+      fillTransitionDurationSeconds,
+      fillTransitionCurve,
+      realisticWave,
+      enableDecoration,
     );
   }
 
@@ -215,6 +294,7 @@ class WaterAnimationControlPanelState
             "Water Animation Controls",
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
+          // Amplitude
           Row(
             children: [
               const Text("Amplitude"),
@@ -235,6 +315,7 @@ class WaterAnimationControlPanelState
               ),
             ],
           ),
+          // Frequency
           Row(
             children: [
               const Text("Frequency"),
@@ -255,6 +336,7 @@ class WaterAnimationControlPanelState
               ),
             ],
           ),
+          // Speed
           Row(
             children: [
               const Text("Speed"),
@@ -275,6 +357,40 @@ class WaterAnimationControlPanelState
               ),
             ],
           ),
+          // Water Color
+          Row(
+            children: [
+              const Text("Water Color: "),
+              IconButton(
+                icon: const Icon(Icons.circle, color: Colors.blue),
+                onPressed: () {
+                  setState(() {
+                    waterColor = Colors.blue;
+                    _notify();
+                  });
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.circle, color: Colors.cyan),
+                onPressed: () {
+                  setState(() {
+                    waterColor = Colors.cyan;
+                    _notify();
+                  });
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.circle, color: Colors.indigo),
+                onPressed: () {
+                  setState(() {
+                    waterColor = Colors.indigo;
+                    _notify();
+                  });
+                },
+              ),
+            ],
+          ),
+          // Gradient, Ripple, Shader
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -310,32 +426,99 @@ class WaterAnimationControlPanelState
               ),
             ],
           ),
+          // Yeni: Water Fill Fraction
           Row(
             children: [
-              const Text("Water Color: "),
-              IconButton(
-                icon: const Icon(Icons.circle, color: Colors.blue),
-                onPressed: () {
+              const Text("Fill Fraction"),
+              Expanded(
+                child: Slider(
+                  value: waterFillFraction,
+                  min: 0.0,
+                  max: 1.0,
+                  divisions: 10,
+                  label: waterFillFraction.toStringAsFixed(2),
+                  onChanged: (val) {
+                    setState(() {
+                      waterFillFraction = val;
+                      _notify();
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+          // Yeni: Fill Transition Duration
+          Row(
+            children: [
+              const Text("Fill Duration (s)"),
+              Expanded(
+                child: Slider(
+                  value: fillTransitionDurationSeconds,
+                  min: 0.0,
+                  max: 3.0,
+                  divisions: 6,
+                  label: fillTransitionDurationSeconds.toStringAsFixed(1),
+                  onChanged: (val) {
+                    setState(() {
+                      fillTransitionDurationSeconds = val;
+                      _notify();
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+          // Yeni: Fill Transition Curve
+          Row(
+            children: [
+              const Text("Fill Curve"),
+              const SizedBox(width: 10),
+              DropdownButton<String>(
+                value: selectedCurve,
+                items:
+                    <String>["Linear", "EaseInOut"].map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                onChanged: (val) {
                   setState(() {
-                    waterColor = Colors.blue;
+                    selectedCurve = val!;
+                    fillTransitionCurve =
+                        (selectedCurve == "Linear")
+                            ? Curves.linear
+                            : Curves.easeInOut;
                     _notify();
                   });
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.circle, color: Colors.cyan),
-                onPressed: () {
+            ],
+          ),
+          // Yeni: Realistic Wave
+          Row(
+            children: [
+              const Text("Realistic Wave"),
+              Switch(
+                value: realisticWave,
+                onChanged: (val) {
                   setState(() {
-                    waterColor = Colors.cyan;
+                    realisticWave = val;
                     _notify();
                   });
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.circle, color: Colors.indigo),
-                onPressed: () {
+            ],
+          ),
+          // Yeni: Decoration
+          Row(
+            children: [
+              const Text("Decoration"),
+              Switch(
+                value: enableDecoration,
+                onChanged: (val) {
                   setState(() {
-                    waterColor = Colors.indigo;
+                    enableDecoration = val;
                     _notify();
                   });
                 },
@@ -343,6 +526,7 @@ class WaterAnimationControlPanelState
             ],
           ),
           const Divider(),
+          // İkinci Dalga Kontrolleri
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

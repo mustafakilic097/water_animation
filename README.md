@@ -1,18 +1,21 @@
-
 <img src="https://github.com/user-attachments/assets/29507311-77b6-4772-aa6c-dd0749638c88" alt="WATER-ANİMATİON" width="300">
 
 # Water Animation
-A simple Flutter package that provides a customizable water animation widget to create realistic water effects with animated waves, gradient fills, and ripple effects.
+A simple Flutter package that provides a customizable water animation widget to create realistic water effects with animated waves, gradient fills, and interactive ripple effects.
 
 ![Water Animation](https://github.com/user-attachments/assets/af82e587-df10-4813-acd5-104b3c28a68f)
 
 ## Features
 
 - **Animated Waves:** Simulate dynamic water surfaces with smooth, animated waves.
-- **Customizable:** Easily adjust wave amplitude, frequency, speed, water color, and gradient fills.
+- **Customizable Water Level:** Control the water fill level via the `waterFillFraction` parameter.
+- **Animated Fill Transition:** Smoothly animate changes in water level using `fillTransitionDuration` and `fillTransitionCurve`.
+- **Customizable Appearance:** Adjust wave amplitude, frequency, speed, water color, and gradient fills to match your design.
 - **Secondary Wave:** Optionally add a secondary wave layer for extra visual depth.
-- **Ripple Effects:** Trigger ripple effects on tap for interactive water surface effects.
-- **Easy Integration:** Designed for quick integration into your existing Flutter projects.
+- **Realistic Wave Mode:** Enable `realisticWave` to generate a more natural, complex wave shape.
+- **Ripple Effects & Tap Interactions:** Trigger ripple effects on tap and handle custom tap events with the `onTap` callback.
+- **Decorative Container:** Style the water animation with the `decoration` parameter, supporting features like rounded borders through clipping.
+- **Easy Integration:** Designed for quick and hassle-free integration into your existing Flutter projects.
 
 ## Getting Started
 
@@ -21,7 +24,7 @@ A simple Flutter package that provides a customizable water animation widget to 
 
    ```yaml
    dependencies:
-     water_animation: ^0.0.2
+     water_animation: ^0.0.3
    ```
 
 2. **Install the Package:**  
@@ -59,18 +62,29 @@ class MyApp extends StatelessWidget {
                 child: WaterAnimation(
                   width: MediaQuery.of(context).size.width,
                   height: 200,
+                  waterFillFraction: 0.5, // 50% fill level
+                  fillTransitionDuration: Duration(seconds: 1),
+                  fillTransitionCurve: Curves.easeInOut,
                   amplitude: 20,
                   frequency: 1,
                   speed: 3,
                   waterColor: Colors.blue,
                   gradientColors: [Colors.blue, Colors.lightBlueAccent],
-                  enableRipple: false,
+                  enableRipple: true,
                   enableShader: false,
-                  enableSecondWave: false,
+                  enableSecondWave: true,
                   secondWaveColor: Colors.blueAccent,
                   secondWaveAmplitude: 10.0,
                   secondWaveFrequency: 1.5,
                   secondWaveSpeed: 1.0,
+                  realisticWave: true,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  onTap: () {
+                    print('Water tapped!');
+                  },
                 ),
               ),
             ),

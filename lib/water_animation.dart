@@ -12,53 +12,65 @@ import 'package:flutter/scheduler.dart';
 /// - Optional ripple effect when the water is tapped.
 /// - An optional secondary wave layer with separate parameters.
 /// - Customizable width and height.
+/// - Customizable water fill level via [waterFillFraction].
+/// - If [fillTransitionDuration] is non-zero, changes to [waterFillFraction]
+///   are smoothly animated.
+/// - An optional [decoration] for container styling (with clipping for rounded borders).
+/// - An optional [realisticWave] mode that creates a more natural wave shape.
+/// - A new [onTap] callback that is triggered when the water is tapped.
 class WaterAnimation extends StatefulWidget {
-  /// The width of the widget. (Default is 250.)
   final double width;
-
-  /// The height of the widget. (Default is 200.)
   final double height;
 
-  /// The amplitude of the primary wave. (Default is 20.)
+  /// A value in the range [0..1].
+  /// - 0.0 means no water is drawn.
+  /// - 1.0 means the water fills the entire container.
+  final double waterFillFraction;
+
+  /// If this duration is non-zero, changes to [waterFillFraction] will animate
+  /// from the old value to the new value over this duration.
+  final Duration fillTransitionDuration;
+
+  /// The curve used when animating [waterFillFraction].
+  final Curve fillTransitionCurve;
+
+  /// Primary wave parameters.
   final double amplitude;
-
-  /// The frequency of the primary wave (number of complete waves across the width). (Default is 1.)
   final double frequency;
-
-  /// The speed at which the primary wave moves. (Default is 3.)
   final double speed;
-
-  /// The color of the primary wave. (Default is Colors.blue.)
   final Color waterColor;
-
-  /// If provided, the water is filled with a linear gradient instead of a solid color.
   final List<Color>? gradientColors;
 
-  /// Enables a ripple effect when the water surface is tapped. (Default is false.)
+  /// Enables a ripple effect on tap.
   final bool enableRipple;
 
-  /// Enables shader effects. (Default is false; reserved for future use.)
+  /// Enables a shader effect (reserved for advanced usage).
   final bool enableShader;
 
-  /// Enables a secondary wave layer behind the primary wave. (Default is false.)
+  /// Secondary wave parameters.
   final bool enableSecondWave;
-
-  /// The color of the secondary wave. (Default is Colors.blueAccent.)
   final Color secondWaveColor;
-
-  /// The amplitude of the secondary wave. (Default is 10.0.)
   final double secondWaveAmplitude;
-
-  /// The frequency of the secondary wave. (Default is 1.5.)
   final double secondWaveFrequency;
-
-  /// The speed at which the secondary wave moves. (Default is 1.0.)
   final double secondWaveSpeed;
+
+  /// If true, uses a combination of sine waves to create a more natural wave shape.
+  final bool realisticWave;
+
+  /// Decoration for the outer container. If it's a [BoxDecoration] with [borderRadius],
+  /// the water animation is clipped to the rounded corners.
+  final Decoration? decoration;
+
+  /// Callback that is triggered when the water widget is tapped.
+  final VoidCallback? onTap;
 
   const WaterAnimation({
     super.key,
     this.width = 250,
     this.height = 200,
+    this.waterFillFraction = 0.5,
+    this.fillTransitionDuration = Duration.zero,
+    this.fillTransitionCurve = Curves.linear,
     // Primary wave defaults:
     this.amplitude = 20,
     this.frequency = 1,
@@ -73,18 +85,19 @@ class WaterAnimation extends StatefulWidget {
     this.secondWaveAmplitude = 10.0,
     this.secondWaveFrequency = 1.5,
     this.secondWaveSpeed = 1.0,
+    // Realistic wave mode:
+    this.realisticWave = false,
+    this.decoration,
+    this.onTap, // Yeni onTap özelliği eklendi.
   });
 
   @override
   WaterAnimationState createState() => WaterAnimationState();
 }
 
-/// A helper model representing a ripple effect on the water.
+/// Represents a ripple effect on the water.
 class Ripple {
-  /// The position where the ripple was triggered.
   final Offset position;
-
-  /// The time (in seconds) when the ripple started.
   final double startTime;
 
   Ripple({required this.position, required this.startTime});
@@ -92,55 +105,121 @@ class Ripple {
 
 class WaterAnimationState extends State<WaterAnimation>
     with TickerProviderStateMixin {
-  late final Ticker _ticker;
-  double _offset1 = 0.0; // Primary wave horizontal offset.
-  double _offset2 = 0.0; // Secondary wave horizontal offset.
+  /// A ticker for animating the wave offsets (for the wave motion).
+  late final Ticker _waveTicker;
+
+  /// An animation controller for animating the waterFillFraction changes.
+  AnimationController? _fillController;
+  Animation<double>? _fillAnimation;
+
+  /// Current water fill fraction used by the painter.
+  double _currentFillFraction = 0.0;
+
+  double _offset1 = 0.0;
+  double _offset2 = 0.0;
   double _elapsedSeconds = 0.0;
-  final List<Ripple> _ripples = []; // Made final.
-  final double _rippleDuration =
-      1.0; // Duration for which a ripple is visible (in seconds).
+
+  final List<Ripple> _ripples = [];
+  final double _rippleDuration = 1.0;
 
   @override
   void initState() {
     super.initState();
-    _ticker = createTicker((elapsed) {
-      double currentTime = elapsed.inMicroseconds / 1e6;
-      double delta = currentTime - _elapsedSeconds;
+
+    _currentFillFraction = widget.waterFillFraction;
+
+    // Wave ticker: animates the wave offsets.
+    _waveTicker = createTicker((elapsed) {
+      final currentTime = elapsed.inMicroseconds / 1e6;
+      final delta = currentTime - _elapsedSeconds;
       _elapsedSeconds = currentTime;
       setState(() {
         _offset1 += widget.speed * delta;
         if (widget.enableSecondWave) {
           _offset2 += widget.secondWaveSpeed * delta;
         }
-        // Remove expired ripple effects.
         _ripples.removeWhere(
           (r) => (_elapsedSeconds - r.startTime) > _rippleDuration,
         );
       });
     });
-    _ticker.start();
+    _waveTicker.start();
+
+    // If user wants animated fill transitions, create a controller.
+    if (widget.fillTransitionDuration > Duration.zero) {
+      _fillController = AnimationController(
+        vsync: this,
+        duration: widget.fillTransitionDuration,
+      );
+      _fillAnimation = Tween<double>(
+        begin: _currentFillFraction,
+        end: _currentFillFraction,
+      ).animate(
+        CurvedAnimation(
+          parent: _fillController!,
+          curve: widget.fillTransitionCurve,
+        ),
+      )..addListener(() {
+        setState(() {
+          _currentFillFraction = _fillAnimation!.value;
+        });
+      });
+    }
   }
 
   @override
   void dispose() {
-    _ticker.dispose();
+    _waveTicker.dispose();
+    _fillController?.dispose();
     super.dispose();
   }
 
-  /// Handles tap events to trigger a ripple effect.
+  @override
+  void didUpdateWidget(WaterAnimation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check if waterFillFraction changed
+    if (widget.waterFillFraction != oldWidget.waterFillFraction) {
+      // If there's no fill transition duration, update immediately.
+      if (widget.fillTransitionDuration == Duration.zero) {
+        setState(() {
+          _currentFillFraction = widget.waterFillFraction;
+        });
+      } else {
+        // Animate from old fill to new fill
+        _fillController?.duration = widget.fillTransitionDuration;
+        _fillAnimation = Tween<double>(
+          begin: _currentFillFraction,
+          end: widget.waterFillFraction,
+        ).animate(
+          CurvedAnimation(
+            parent: _fillController!,
+            curve: widget.fillTransitionCurve,
+          ),
+        );
+        _fillController?.forward(from: 0.0);
+      }
+    }
+  }
+
   void _handleTap(TapUpDetails details) {
-    if (!widget.enableRipple) return;
-    RenderBox box = context.findRenderObject() as RenderBox;
-    Offset localPos = box.globalToLocal(details.globalPosition);
-    setState(() {
-      _ripples.add(Ripple(position: localPos, startTime: _elapsedSeconds));
-    });
+    final box = context.findRenderObject() as RenderBox;
+    final localPos = box.globalToLocal(details.globalPosition);
+    // Ripple efekti ekle (eğer aktifse)
+    if (widget.enableRipple) {
+      setState(() {
+        _ripples.add(Ripple(position: localPos, startTime: _elapsedSeconds));
+      });
+    }
+    // Yeni onTap callback'i tetikle
+    widget.onTap?.call();
   }
 
   @override
   Widget build(BuildContext context) {
+    // The painter uses _currentFillFraction to draw the water level.
     Widget waterWidget = GestureDetector(
-      onTapUp: widget.enableRipple ? _handleTap : null,
+      onTapUp: _handleTap,
       child: SizedBox(
         width: widget.width,
         height: widget.height,
@@ -159,11 +238,33 @@ class WaterAnimationState extends State<WaterAnimation>
             ripples: _ripples,
             rippleDuration: _rippleDuration,
             currentTime: _elapsedSeconds,
+            waterFillFraction: _currentFillFraction,
+            realisticWave: widget.realisticWave,
           ),
-          child: Container(),
         ),
       ),
     );
+
+    if (widget.decoration != null) {
+      // If the decoration is a BoxDecoration with a borderRadius, clip accordingly.
+      if (widget.decoration is BoxDecoration) {
+        final boxDeco = widget.decoration as BoxDecoration;
+        final borderRadius = boxDeco.borderRadius;
+        if (borderRadius != null) {
+          waterWidget = ClipRRect(
+            borderRadius: borderRadius,
+            child: Container(decoration: boxDeco, child: waterWidget),
+          );
+        } else {
+          waterWidget = Container(decoration: boxDeco, child: waterWidget);
+        }
+      } else {
+        waterWidget = Container(
+          decoration: widget.decoration,
+          child: waterWidget,
+        );
+      }
+    }
 
     if (widget.enableShader) {
       waterWidget = ShaderMask(
@@ -178,11 +279,12 @@ class WaterAnimationState extends State<WaterAnimation>
         child: waterWidget,
       );
     }
+
     return waterWidget;
   }
 }
 
-/// A CustomPainter that draws the water animation.
+/// Paints the water waves, gradient fill, and ripple effects.
 class WaterPainter extends CustomPainter {
   final double amplitude;
   final double frequency;
@@ -200,6 +302,13 @@ class WaterPainter extends CustomPainter {
   final double rippleDuration;
   final double currentTime;
 
+  /// [waterFillFraction] in [0..1].
+  /// 0 => no water, 1 => fills entire container.
+  final double waterFillFraction;
+
+  /// If true, a second sine wave is added to create a more realistic shape.
+  final bool realisticWave;
+
   WaterPainter({
     required this.amplitude,
     required this.frequency,
@@ -214,14 +323,19 @@ class WaterPainter extends CustomPainter {
     required this.ripples,
     required this.rippleDuration,
     required this.currentTime,
+    required this.waterFillFraction,
+    required this.realisticWave,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Water surface level is set to 30% of the widget's height.
-    double waterSurface = size.height * 0.3;
+    final fraction = waterFillFraction.clamp(0.0, 1.0);
+    if (fraction == 0.0) return;
 
-    // Draw the secondary wave in the background if enabled.
+    // Water surface is at height*(1 - fraction)
+    final waterSurface = size.height * (1 - fraction);
+
+    // Secondary wave behind the primary wave
     if (enableSecondWave) {
       _drawWave(
         canvas: canvas,
@@ -231,10 +345,12 @@ class WaterPainter extends CustomPainter {
         frequency: secondWaveFrequency,
         offset: offset2,
         color: secondWaveColor,
+        gradientColors: null,
+        realisticWave: realisticWave,
       );
     }
 
-    // Draw the primary wave.
+    // Primary wave
     _drawWave(
       canvas: canvas,
       size: size,
@@ -244,15 +360,16 @@ class WaterPainter extends CustomPainter {
       offset: offset1,
       color: waterColor,
       gradientColors: gradientColors,
+      realisticWave: realisticWave,
     );
 
-    // Draw ripple effects.
-    for (var ripple in ripples) {
-      double progress = (currentTime - ripple.startTime) / rippleDuration;
+    // Ripples
+    for (final ripple in ripples) {
+      final progress = (currentTime - ripple.startTime) / rippleDuration;
       if (progress > 1) continue;
-      double rippleRadius = progress * size.width / 3;
-      int alpha = (255 * (1 - progress)).round();
-      Paint ripplePaint =
+      final rippleRadius = progress * size.width / 3;
+      final alpha = (255 * (1 - progress)).round();
+      final ripplePaint =
           Paint()
             ..color = Colors.white.withAlpha(alpha)
             ..style = PaintingStyle.stroke
@@ -270,21 +387,32 @@ class WaterPainter extends CustomPainter {
     required double offset,
     required Color color,
     List<Color>? gradientColors,
+    required bool realisticWave,
   }) {
-    Path path = Path();
+    final path = Path();
     path.moveTo(0, waterSurface);
-    double waveLength = size.width / frequency;
+    final waveLength = size.width / frequency;
+
     for (double x = 0; x <= size.width; x++) {
-      double y =
-          waterSurface +
+      final baseWave =
           amplitude * math.sin((2 * math.pi / waveLength) * x - offset);
+      double y = waterSurface + baseWave;
+      if (realisticWave) {
+        // Additional smaller wave for more natural shape
+        final secondaryWave =
+            0.2 *
+            amplitude *
+            math.sin((4 * math.pi / waveLength) * x - offset * 1.2);
+        y += secondaryWave;
+      }
       path.lineTo(x, y);
     }
+
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
 
-    Paint paint = Paint()..style = PaintingStyle.fill;
+    final paint = Paint()..style = PaintingStyle.fill;
     if (gradientColors != null && gradientColors.length >= 2) {
       paint.shader = LinearGradient(
         colors: gradientColors,
@@ -296,6 +424,7 @@ class WaterPainter extends CustomPainter {
     } else {
       paint.color = color;
     }
+
     canvas.drawPath(path, paint);
   }
 
